@@ -1,0 +1,6 @@
+{
+    "sketch": "src/wavetable-synth/wavetable-synth.ino",
+    "board": "arduino:avr:uno",
+    "port": "/dev/cu.usbmodem14401",
+    "output": "./build"
+}
