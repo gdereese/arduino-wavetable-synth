@@ -1,7 +1,7 @@
 #ifndef PHASE_INC_TABLE_H
 #define PHASE_INC_TABLE_H
 
-const uint16_t PHASE_IN_TABLE_LEN = 1023;
+const uint16_t PHASE_INC_TABLE_LEN = 1023;
 
 // maps signal frequencies of 20-20000Hz to a phase increment
 // formula: y = (signal_freq / sample_freq) * wavetable_len;
