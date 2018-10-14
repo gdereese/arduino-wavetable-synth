@@ -1,3 +1,4 @@
+#include "phase-inc-table.h"
 #include "wavetables.h"
 
 // defines
@@ -10,8 +11,6 @@ const uint8_t PIN_FREQ_IN = A0;
 const uint8_t PIN_READY_LED = 12;
 
 // constants
-const uint16_t FREQ_MIN = 20;
-const uint16_t FREQ_MAX = 10000;
 const uint16_t SAMPLE_FREQ = 40000; 
 
 // global vars
@@ -26,14 +25,14 @@ void setup() {
   setup_freq_input(PIN_FREQ_IN);
   setup_ready_led(PIN_READY_LED);
 
-  set_waveform(3);
+  set_waveform(1);
 
   write_ready_led(true);
 }
 
 void loop() {
-  uint16_t freq = map(analogRead(PIN_FREQ_IN), 0, 1023, FREQ_MIN, FREQ_MAX);
-  set_signal_freq(freq);
+  uint16_t freq_in_val = analogRead(PIN_FREQ_IN);
+  set_signal_freq(freq_in_val);
 }
 
 ISR(SAMP_TIMER_INTR) {
@@ -51,8 +50,8 @@ uint16_t calc_sample() {
   return sample;
 }
 
-void set_signal_freq(uint16_t freq) {
-  phase_inc = ((float)freq / SAMPLE_FREQ) * WAVETABLE_LEN;
+void set_signal_freq(uint16_t freq_in_val) {
+  phase_inc = pgm_read_word_near(PHASE_INC + freq_in_val);
 }
 
 void set_waveform(uint8_t waveform) {
