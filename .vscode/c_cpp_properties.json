@@ -3,24 +3,31 @@
         {
             "name": "Mac",
             "defines": [
-                "ARDUINO=10800"
-            ],
-            "includePath": [
-                "${workspaceRoot}/src/**",
-                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/**",
-                "/Applications⁩/Arduino⁩.app/Contents⁩/Java⁩/hardware⁩/tools⁩/avr⁩/avr⁩/include⁩/avr⁩/**",
-                "/Applications/Arduino.app/Contents/Java/tools/**",
-                "/Applications/hardware/tools/**",
-                "/Applications/libraries/**",
-                "~/Documents/Arduino/hardware/tools/**",
-                "~/Documents/Arduino/libraries/**"
+                "ARDUINO=10805",
+                "__AVR__",
+                "__AVR_ENHANCED__",
+                "__AVR_ATmega328P__"
             ],
             "forcedInclude": [
                 "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/cores/arduino/Arduino.h"
             ],
+            "includePath": [
+                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/cores/arduino",
+                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/variants/standard",
+                "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include",
+                "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/lib/gcc/avr/4.9.2/include"
+            ],
             "intelliSenseMode": "clang-x64",
-            "cStandard": "c11",
-            "cppStandard": "c++17"
+            "browse": {
+                "path": [
+                    "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/cores/arduino",
+                    "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/variants/standard",
+                    "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include",
+                    "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/lib/gcc/avr/4.9.2/include"
+                ],
+                "limitSymbolsToIncludedHeaders": false,
+                "databaseFilename": ""
+            }
         }
     ],
     "version": 4
