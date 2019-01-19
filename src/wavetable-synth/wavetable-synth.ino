@@ -1,16 +1,15 @@
+#include <TimerOne.h>
+
 #include "phase-inc-table.h"
 #include "wavetables.h"
-
-// defines
-#define SAMP_TIMER_INTR TIMER1_COMPA_vect
-#define SIG_OUT_PINS PORTD
-#define SIG_OUT_REG DDRD
 
 // interface pins
 const uint8_t PIN_FREQ_IN = A0;
 const uint8_t PIN_READY_LED = 12;
+const uint8_t PIN_SIGNAL_OUT = 9;
 
 // constants
+const uint16_t CPU_FREQ = 1000000;
 const uint16_t SAMPLE_FREQ = 40000; 
 
 // global vars
@@ -21,11 +20,11 @@ void setup() {
   Serial.begin(115200);
 
   setup_sample_timer(SAMPLE_FREQ);
-  setup_signal_output();
+  setup_signal_output(PIN_SIGNAL_OUT);
   setup_freq_input(PIN_FREQ_IN);
   setup_ready_led(PIN_READY_LED);
 
-  set_waveform(1);
+  set_output_waveform(3);
 
   write_ready_led(true);
 }
@@ -35,31 +34,33 @@ void loop() {
   set_signal_freq(freq_in_val);
 }
 
-ISR(SAMP_TIMER_INTR) {
-  uint16_t sample = calc_sample();
-
-  write_sample(sample);
-}
-
 uint16_t calc_sample() {
+  // increment the phase accumulator appropriately based on the wavetable length (number of samples)
   static uint16_t phase = 0;
   phase = inc_phase(phase, phase_inc, WAVETABLE_LEN - 1);
 
+  // read a sample from the wavetable using the current phase accumulator value
   uint16_t sample = pgm_read_word_near(wavetable + phase);
 
   return sample;
+}
+
+void on_sample_tick() {
+  uint16_t sample = calc_sample();
+
+  write_sample(sample);
 }
 
 void set_signal_freq(uint16_t freq_in_val) {
   phase_inc = pgm_read_word_near(PHASE_INC + freq_in_val);
 }
 
-void set_waveform(uint8_t waveform) {
-  if (waveform == 1) {
+void set_output_waveform(uint8_t waveform_val) {
+  if (waveform_val == 1) {
     wavetable = SINE;
-  } else if (waveform == 2) {
+  } else if (waveform_val == 2) {
     wavetable = TRI;
-  } else if (waveform == 3) {
+  } else if (waveform_val == 3) {
     wavetable = SAW;
   }
 }
@@ -73,26 +74,14 @@ void setup_ready_led(uint8_t pin) {
 }
 
 void setup_sample_timer(uint16_t sample_freq) {
-  cli();
-
-  const uint32_t base_clk_freq = 16000000;
-  const uint8_t clk_prescaler = 1;
-
-  // Timer 1 @ sample_freq Hz
-  TCCR1A = 0;
-  TCCR1B = 0;
-  TCNT1 = 0;
-  OCR1A = base_clk_freq / (sample_freq * clk_prescaler) - 1;
-  TCCR1B |= (1 << WGM12);
-  TCCR1B |= (0 << CS12) | (0 << CS11) | (1 << CS10);
-  TIMSK1 |= (1 << OCIE1A);
-
-  sei();
+  uint16_t sample_period = (1.0 / sample_freq) * CPU_FREQ;
+  Timer1.initialize(sample_period);
+  Timer1.attachInterrupt(on_sample_tick);
 }
 
-void setup_signal_output() {
-  // setup all pins in register for output
-  SIG_OUT_REG = 255;
+void setup_signal_output(uint8_t pin) {
+  // enable PWM on output pin
+  Timer1.pwm(pin, 0);
 }
 
 void write_ready_led(bool isOn) {
@@ -101,11 +90,13 @@ void write_ready_led(bool isOn) {
 }
 
 void write_sample(uint16_t sample) {
-  // map 0-65535 -> 0-255 by dividing by 256 (right-shift 8 bits)
-  SIG_OUT_PINS = sample >> 8;
+  // map 0-65535 -> 0-1023 by dividing by 64 (right-shift 6 bits)
+  uint16_t duty_val = sample >> 6;
+  Timer1.setPwmDuty(PIN_SIGNAL_OUT, duty_val);
 }
 
 uint16_t inc_phase(uint16_t curr_val, uint16_t step, uint16_t max_val) {
+  // increment value, wrapping around back to 0 if value exceeds max
   if (curr_val + step > max_val) {
     return curr_val + step - max_val;
   } else {
